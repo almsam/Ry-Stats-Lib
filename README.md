@@ -4,9 +4,10 @@
 ## Software Licence:
 
 ``` {text}
-MIT License
+OSPREY License
 
-Copyright (c) 2025-2026 Samira Almuallim
+Copyright (c) 2025-2026 Samira
+Developed under the OSPREY Project (Open Source Projects for Research, Education, & You)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -15,12 +16,29 @@ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. **Attribution**  
+   The above copyright notice, this license, and the following attribution notice
+   shall be included in all copies or substantial portions of the Software:
 
-"This software includes contributions made by ["almsam" or "https://github.com/almsam" or "Samira Almuallim"]."
+   > "This software is part of the OSPREY Project (https://github.com/almsam/OSPREY),  
+   > created by contributors including
+	["Samira"
+	  or "Almsam"
+	  or "https://github.com/almsam"].  
+   > For more information, visit:
+   >> https://github.com/almsam/OSPREY & 
+   >> https://github.com/almsam/OSPREY/Social Code of Conduct.md "
 
-That is to say: any uses of this project (such as in an academic environment) without attribution are not permitted.
+2. **Community Respect Clause**  
+   The Software shall not be used in any project or system that violates the OSPREY Social Code of Conduct
+	> For more information, see(https://github.com/almsam/OSPREY/Social code of conduct.md).  
+   This includes but is not limited to projects or applications that promote hate, discrimination (racism,
+   sexism, homophobia, transphobia, or abelism), or harassment of any kind.
+
+3. **Educational and Collaborative Spirit**  
+   Users are encouraged, though not required, to contribute improvements back to the OSPREY community  
+   to support its educational and mentoring mission. Contributions may be made through pull requests  
+   or other collaboration tools on GitHub.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
