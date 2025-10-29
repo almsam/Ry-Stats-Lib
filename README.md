@@ -1,4 +1,4 @@
-# *R Project* projects
+# Ry Statistics Language
 
 
 ## Software Licence:
