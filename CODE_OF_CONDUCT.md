@@ -1,8 +1,5 @@
 <div align="center">
 
-<a href="https://github.com/almsam/OSPREY">
-  <img src="OSPREY logo.png" alt="Logo" width="270" height="270">
-</a>
 
 <h1 align="center">OSPREY</h1>
 <h3 align="center">Open Source Projects for Research, Education, & You</h3>
