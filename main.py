@@ -33,7 +33,6 @@ from Modules.programming_utils import *
 from Modules.system_env import *
 from Modules.ry_extensions import *
 
-all = [name for name in globals() if not name.startswith("_")]
 
 
 
