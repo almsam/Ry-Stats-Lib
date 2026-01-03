@@ -24,4 +24,4 @@ def seq(start, stop=None, step=1):
 
 def rep(x, times):
     """Replicate values"""
-    return x * times
+    return [x] * times if not isinstance(x, list) else x * times
