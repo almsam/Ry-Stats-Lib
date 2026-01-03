@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ry"
+dynamic = ["version"]
+description = 'R but with Py'
+readme = "README.md"
+requires-python = ">=3.12"
+license = "LicenseRef-Other"
+keywords = []
+authors = [{name = "OSPREY Project"}]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+  "numpy>=2.4.0",
+  "pandas>=2.3.0",
+]
+
+[project.urls]
+Documentation = "https://github.com/almsam/Ry-Stats-Lib#readme"
+Issues = "https://github.com/almsam/Ry-Stats-Lib/issues"
+Source = "https://github.com/almsam/Ry-Stats-Lib"
