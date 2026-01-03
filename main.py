@@ -1,37 +1,37 @@
 # Core
-from core import *
-from Modules.type_conversion import *
-from Modules.inspection import *
-from Modules.access import *
+from .core import *
+from .Modules.TypeConversion import *
+from .Modules.Inspection import *
+from .Modules.Access import *
 
 # I/O
-from Modules.io_layer import *
+from .Modules.IOLayer import *
 
 # Math & Stats
-from Modules.math_basic import *
-from Modules.math_transforms import *
-from Modules.distributions import *
+from .Modules.MathBasic import *
+from .Modules.MathTransforms import *
+from .Modules.Distributions import *
 
 # Data
-from Modules.data_manipulation import *
+from .Modules.DataManipulation import *
 
 # Utilities
-from Modules.strings import *
-from Modules.datetime_utils import *
+from .Modules.Strings import *
+from .Modules.DatetimeUtils import *
 
 # Plotting
-from Modules.plotting_core import *
-from Modules.plotting_style import *
+from .Modules.PlottingCore import *
+from .Modules.PlottingStyle import *
 
 # Modeling
-from Modules.modeling import *
-from Modules.optimization import *
-from Modules.statistical_tests import *
+from .Modules.Modeling import *
+from .Modules.Optimization import *
+from .Modules.StatisticalTests import *
 
 # Language Utilities
-from Modules.programming_utils import *
-from Modules.system_env import *
-from Modules.ry_extensions import *
+from .Modules.ProgrammingUtils import *
+from .Modules.SystemEnv import *
+from .Modules.RyExtensions import *
 
 
 
