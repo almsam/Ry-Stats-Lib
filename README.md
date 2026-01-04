@@ -13,6 +13,12 @@ These two use cases should utilize the same backend of statistical functions, al
 
 As an ambitious long term goal, Ry aims to have the advantage of R's ease of use for initial exploration and prototyping, while also providing a smooth transition path to production level code in Python. The team currently thinks this can be achieved by having a script in place similar to an interpreter to convert a .Ry file to a .py file, leveraging the shared backend and consistent syntax and semantics between Ry and Python
 
+## Dependencies:
+
+Python >= 3.12
+Numpy >= 2.4.0
+Pandas >= 2.3.0
+
 ## Software Licence:
 
 ``` {text}
