@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = 'R but with Py'
 readme = "README.md"
 requires-python = ">=3.12"
-license = "LicenseRef-Other"
+license = "MIT"
 keywords = []
 authors = [{name = "OSPREY Project"}]
 classifiers = [
