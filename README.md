@@ -1,5 +1,23 @@
 # Ry Statistics Language
 
+## Project Description:
+
+Ry is a modern statistical computing system inspired by R, built on a Python-native core.
+
+The project has two tightly aligned use cases:
+
+1. A modern R like statistical programming language with its own interpreter, powered by a Python backend, and that will hopefully be as easy to use as R but with better syntax
+2. A Python statistics library that provides a clean interface for all the relevant statistical functions and data structures
+
+These two use cases should utilize the same backend of statistical functions, allowing consistency across the Python API and the Ry language
+
+As an ambitious long term goal, Ry aims to have the advantage of R's ease of use for initial exploration and prototyping, while also providing a smooth transition path to production level code in Python. The team currently thinks this can be achieved by having a script in place similar to an interpreter to convert a .Ry file to a .py file, leveraging the shared backend and consistent syntax and semantics between Ry and Python
+
+## Dependencies:
+
+Python >= 3.12
+Numpy >= 2.4.0
+Pandas >= 2.3.0
 
 ## Software Licence:
 
