@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ry"
-dynamic = ["version"]
+version = "0.0.1dev0"
 description = 'R but with Py'
 readme = "README.md"
 requires-python = ">=3.12"
@@ -12,7 +12,7 @@ license = "MIT"
 keywords = []
 authors = [{name = "OSPREY Project"}]
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 1 - Planning",
   "Programming Language :: Python",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
@@ -26,3 +26,6 @@ dependencies = [
 Documentation = "https://github.com/almsam/Ry-Stats-Lib#readme"
 Issues = "https://github.com/almsam/Ry-Stats-Lib/issues"
 Source = "https://github.com/almsam/Ry-Stats-Lib"
+
+[tool.hatch.build.targets.wheel]
+packages = ["Ry"]
