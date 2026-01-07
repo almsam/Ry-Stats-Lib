@@ -36,7 +36,7 @@ def unique(obj): # extract unique elements
     else:
         raise TypeError(f"Cannot get unique elements from type {type(obj)}")
 
-def select(obj, cols): # select columns by name or index
+def select(obj, cols):
     
     if isinstance(obj, pd.DataFrame):
         if isinstance(cols, (list, tuple)):
