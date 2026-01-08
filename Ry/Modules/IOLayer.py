@@ -227,6 +227,10 @@ def write_txt(df: _pd.DataFrame, fp: os.PathLike[str] | None = None, /, **kwargs
 #  Custom Save/Load Functions for DataFrames, Series, ndarrays
 ################################################
 
+FILE_HEADER = b"\x93RYDATA"   # Magic number for RyData files
+CURRENT_VERSION = b"\x01\x00" # version 1.0
+MAGIC_NUMBER = FILE_HEADER + CURRENT_VERSION + b"\n"
+
 def save(obj: _pd.DataFrame | _pd.Series | _np.ndarray, name: str | None = None) -> None:
     """Saves a pandas DataFrame, Series, or numpy ndarray to disk, optionally in a compressed format if available in the stdlib.
     
@@ -287,6 +291,7 @@ def save(obj: _pd.DataFrame | _pd.Series | _np.ndarray, name: str | None = None)
         # Write the buffer to disk with the appropriate compression format
         buf.seek(0)
         with open(ry_data.joinpath(f"{name}"), "wb") as output_file:
+            output_file.write(MAGIC_NUMBER)
             output_file.write(dtype.encode("utf-8") + b"\n")
             match COMPRESSION_FORMAT:
                 case "zstd":
@@ -323,6 +328,18 @@ def load(name: str) -> _pd.DataFrame | _pd.Series | _np.ndarray:
     if not file.exists():
         raise FileNotFoundError(f"No saved data found with the name: {name!r}.")
     with open(file, "rb") as f:
+        # Verify the magic number
+        magic = f.read(len(MAGIC_NUMBER))
+        if magic[:7] != FILE_HEADER:
+            raise ValueError("The saved data file is not a valid RyData file.")
+        # The next two bytes are the version number; currently unused but reserved for future use
+        version = magic[7:9]
+        # Read the data type and compression format
+        if version < CURRENT_VERSION:
+            pass # Future compatibility handling can be added here
+        elif version > CURRENT_VERSION:
+            raise ValueError("The saved data file version is newer than the current supported version.")
+        
         # The first line is the data type (see SUPPORTED_DTYPES for currently supported types)
         dtype = f.readline().strip().decode("utf-8")
         if dtype not in SUPPORTED_DTYPES:
