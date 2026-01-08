@@ -228,21 +228,35 @@ def save(obj: _pd.DataFrame | _pd.Series | _np.ndarray, name: str | None = None)
     
     Args:
         obj (pd.DataFrame | pd.Series | np.ndarray): The object to save.
-        name (str | None): The name to use for the saved file. If None, the variable name will be attempted to be inferred.
+        name (str | None): The name to use for the saved file. If None, the function will attempt to infer the
+            variable name from the immediate caller's local and global variables. This inference only works when
+            ``obj`` is passed directly as a named variable from the caller; if ``obj`` is the result of an expression
+            or originates from a different scope, you must provide ``name`` explicitly.
     Raises:
         TypeError: If obj is not a pandas DataFrame, Series, or numpy ndarray.
         ValueError: If name is None and the variable name cannot be inferred.
     """
-    # Infer the variable name if not provided
+    # Infer the variable name from the immediate caller if not provided
     if name is None:
-        for i in {1, 2}:
-            if name is not None:
-                break
-            lcl = inspect.stack()[i][0].f_locals
-            name = next((k for k, v in lcl.items() if v is obj), None)
-            
-        if name is None:
-            raise ValueError("Could not infer variable name; please provide a name argument.") from None
+        frame = inspect.currentframe()
+        try:
+            caller_frame = frame.f_back if frame is not None else None
+            if caller_frame is not None:
+                # Search caller's locals first, then globals
+                for scope in (caller_frame.f_locals, caller_frame.f_globals):
+                    for var_name, value in scope.items():
+                        if value is obj:
+                            name = var_name
+                            break
+                    if name is not None:
+                        break
+            if name is None:
+                raise ValueError("Could not infer variable name; please provide a name argument.") from None
+        finally:
+            # Help garbage collection by removing frame references
+            del frame
+            if 'caller_frame' in locals():
+                del caller_frame
     
     # Create the .RyData directory in the current working directory if it doesn't exist
     cwd = pathlib.Path.cwd()
