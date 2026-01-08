@@ -477,14 +477,14 @@ def data(name: str) -> _pd.DataFrame | _np.ndarray:
     if not dir.is_dir():
         raise FileNotFoundError("Ry.Data package is missing or corrupted.")
     try:
-        file = next(f for f in dir.iterdir() if f.is_file() and f.name == name)
+        file = next(f for f in dir.iterdir() if f.is_file() and pathlib.Path(f.name).stem == name)
     except StopIteration:
         raise FileNotFoundError(f"Unknown dataset: {name!r}.") from None
     try:
         with file.open("rb") as f:
-            if name.endswith(".csv"):
+            if file.name.endswith(".csv"):
                 return _pd.read_csv(f)
-            elif name.endswith(".npy"):
+            elif file.name.endswith(".npy"):
                 return _np.load(f)
             else:
                 raise FileNotFoundError(f"Unknown dataset: {name!r}.")
