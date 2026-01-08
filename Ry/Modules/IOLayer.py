@@ -27,6 +27,8 @@ __all__ = (
     "load",
     "cat",
     "print",
+    "sink",
+    "data",
 )
 
 
@@ -43,9 +45,10 @@ SUPPORTED_COMPRESSION_FORMATS: set[_SUPPORTED_COMPRESSION_FORMATS] = {"uncompres
 try:
     from compression import zstd  # pyright: ignore[reportMissingImports]  # Support for zstd compression on 3.14+
     COMPRESSION_FORMAT = "zstd"
-    SUPPORTED_COMPRESSION_FORMATS.add("zstd")
 except ImportError:
+    # zstd compression support is optional; if the module is unavailable, fall back to other formats.
     pass
+
 try:
     from compression import lzma  # pyright: ignore[reportMissingImports]  # Support for xz compression on 3.14+
     if COMPRESSION_FORMAT is None:
@@ -59,8 +62,8 @@ except ImportError:
         SUPPORTED_COMPRESSION_FORMATS.add("xz")
     except ImportError:
         COMPRESSION_FORMAT = None
-        
-    
+
+
 ################################################
 #  Persistent I/O Functions for DataFrames
 ################################################
