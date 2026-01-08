@@ -1,7 +1,9 @@
+import atexit
+import inspect
 import io
 import os
-import inspect
 import pathlib
+import sys
 import typing
 from collections.abc import Callable, Hashable, Mapping, Sequence
 
@@ -19,6 +21,8 @@ __all__ = (
     "write_txt",
     "save",
     "load",
+    "cat",
+    "print",
 )
 
 
@@ -326,4 +330,76 @@ def load(name: str) -> _pd.DataFrame | _pd.Series | _np.ndarray:
             return _np.load(data)
         case _:
             typing.assert_never(dtype)
+
+#################################################
+# Console and Stream I/O Functions
+#################################################
+
+def cat(obj: typing.Any) -> None:
+    """Prints the string representation of an object to the console without any additional formatting.
+
+    Args:
+        obj: The object to print.
+    """
+    if isinstance(obj, bytes):
+        print(obj.decode("utf-8"))
+    elif isinstance(obj, str):
+        print(obj)
+    # Pandas DataFrames and Series have their own pretty-printing methods
+    elif isinstance(obj, (_pd.DataFrame, _pd.Series)):
+        _pd.set_option("display.max_columns", None)
+        _pd.set_option("display.max_rows", None)
+        print(obj.to_string())
+    # Numpy ndarrays also have their own pretty-printing methods
+    elif isinstance(obj, _np.ndarray):
+        _np.set_printoptions(threshold=None)
+        print(obj)
+    else:
+        # use the default string representation for other types
+        print(repr(obj))
+
+
+def print(obj: typing.Any) -> None:
+    """Prints the string representation of an object to the console with default formatting.
+
+    Args:
+        obj: The object to print.
+    """
+    # Pandas DataFrames and Series have their own pretty-printing methods
+    if isinstance(obj, (_pd.DataFrame, _pd.Series)):
+        _pd.set_option("display.max_columns", 20)
+        _pd.set_option("display.max_rows", 60)
+        print(obj.to_string())
+    # Numpy ndarrays also have their own pretty-printing methods
+    elif isinstance(obj, _np.ndarray):
+        _np.set_printoptions(threshold=1000)
+        print(obj)
+    else:
+        # use pprint for other types
+        import pprint
+        pprint.pprint(obj)
+
+
+def sink(file: os.PathLike[str] | io.TextIOWrapper | None = None) -> None:
+    """Redirects the standard output to a file or back to the console.
+
+    Args:
+        file (os.PathLike[str] | None): The path to the output file, or None (default) to redirect back to the console.
+    """
+    if file is None:
+        # Restore standard output to console
+        sys.stdout = sys.__stdout__
+    elif isinstance(file, io.TextIOWrapper):
+        # Redirect standard output to the provided file-like object
+        sys.stdout = file
+    else:
+        f = open(file, "w")
+        sys.stdout = f
+        # Try to close the file on program exit
+        def close_file(): 
+            try:
+                f.close()
+            except Exception:
+                pass
+        atexit.register(close_file)
 
