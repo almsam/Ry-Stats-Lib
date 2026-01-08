@@ -37,7 +37,9 @@ def unique(obj): # extract unique elements
     elif isinstance(obj, pd.Series):
         return obj.unique()
     elif isinstance(obj, np.ndarray):
-        return np.unique(obj)
+        uniques, idx = np.unique(obj, return_index=True)
+        order = np.argsort(idx)
+        return uniques[order]
     elif isinstance(obj, (list, tuple)):
         return list(dict.fromkeys(obj)) # preserves insertion order
     else:
