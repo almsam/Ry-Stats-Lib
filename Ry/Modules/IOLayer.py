@@ -1,5 +1,6 @@
 import atexit
 import inspect
+import importlib.resources
 import io
 import os
 import pathlib
@@ -403,3 +404,27 @@ def sink(file: os.PathLike[str] | io.TextIOWrapper | None = None) -> None:
                 pass
         atexit.register(close_file)
 
+#################################################
+# Load Builtin Datasets
+##################################################
+
+def data(name: str) -> _pd.DataFrame | _np.ndarray:
+    """Loads a builtin dataset by name.
+
+    Args:
+        name (str): The name of the dataset to load.
+    Returns:
+        pd.DataFrame | np.ndarray: The loaded dataset.
+    Raises:
+        FileNotFoundError: If the dataset does not exist.
+    """
+    try:
+        with importlib.resources.open_binary("Ry.Data", name) as f:
+            if name.endswith(".csv"):
+                return _pd.read_csv(f)
+            elif name.endswith(".npy"):
+                return _np.load(f)
+            else:
+                raise FileNotFoundError(f"Unknown dataset: {name!r}.")
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Unknown dataset: {name!r}.") from None
