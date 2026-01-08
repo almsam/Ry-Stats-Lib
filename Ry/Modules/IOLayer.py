@@ -420,8 +420,15 @@ def data(name: str) -> _pd.DataFrame | _np.ndarray:
     Raises:
         FileNotFoundError: If the dataset does not exist.
     """
+    dir = importlib.resources.files("Ry.Data")
+    if not dir.is_dir():
+        raise FileNotFoundError("Ry.Data package is missing or corrupted.")
     try:
-        with importlib.resources.open_binary("Ry.Data", name) as f:
+        file = next(f for f in dir.iterdir() if f.is_file() and f.name == name)
+    except StopIteration:
+        raise FileNotFoundError(f"Unknown dataset: {name!r}.") from None
+    try:
+        with file.open("rb") as f:
             if name.endswith(".csv"):
                 return _pd.read_csv(f)
             elif name.endswith(".npy"):
