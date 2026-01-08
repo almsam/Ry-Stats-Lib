@@ -4,7 +4,6 @@ Module for indexing, slicing, and selection
 
 import numpy as np
 import pandas as pd
-from typing import Any, Callable
 
 __all__ = [ # export funtions for import * 
     "subset",
