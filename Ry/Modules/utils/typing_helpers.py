@@ -1,3 +1,7 @@
+"""
+This Module is a helper for IOLayer (as of now) - see that file for context
+"""
+
 from typing import Any, Callable, Concatenate
 import functools
 
