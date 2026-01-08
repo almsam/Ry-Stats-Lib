@@ -488,5 +488,5 @@ def data(name: str) -> _pd.DataFrame | _np.ndarray:
                 return _np.load(f)
             else:
                 raise FileNotFoundError(f"Unknown dataset: {name!r}.")
-    except FileNotFoundError:
+    except Exception:
         raise FileNotFoundError(f"Unknown dataset: {name!r}.") from None
