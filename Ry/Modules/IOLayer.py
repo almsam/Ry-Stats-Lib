@@ -1,8 +1,12 @@
+import io
 import os
+import inspect
+import pathlib
 import typing
 from collections.abc import Callable, Hashable, Mapping, Sequence
 
 import pandas as _pd
+import numpy as _np
 
 from .utils.typing_helpers import copy_callable_signature
 
@@ -13,7 +17,45 @@ __all__ = (
     "read_fwf",
     "write_csv",
     "write_txt",
+    "save",
+    "load",
 )
+
+
+################################################
+#  Compression Format Detection
+################################################
+
+type _SUPPORTED_COMPRESSION_FORMATS = typing.Literal["zstd", "xz", "uncompressed"]
+type _SUPPORTED_DTYPES = typing.Literal["pd_series", "pd_dataframe", "np_ndarray"]
+SUPPORTED_DTYPES: frozenset[_SUPPORTED_DTYPES] = frozenset({"pd_series", "pd_dataframe", "np_ndarray"})
+COMPRESSION_FORMAT: typing.Literal["zstd", "xz"] | None = None
+SUPPORTED_COMPRESSION_FORMATS: set[_SUPPORTED_COMPRESSION_FORMATS] = {"uncompressed"}
+
+try:
+    from compression import zstd  # pyright: ignore[reportMissingImports]  # Support for zstd compression on 3.14+
+    COMPRESSION_FORMAT = "zstd"
+    SUPPORTED_COMPRESSION_FORMATS.add("zstd")
+except ImportError:
+    pass
+try:
+    from compression import lzma  # pyright: ignore[reportMissingImports]  # Support for xz compression on 3.14+
+    if COMPRESSION_FORMAT is None:
+        COMPRESSION_FORMAT = "xz"
+    SUPPORTED_COMPRESSION_FORMATS.add("xz")
+except ImportError:
+    try:  # fallback for older Python versions
+        import lzma
+        if COMPRESSION_FORMAT is None:
+            COMPRESSION_FORMAT = "xz"
+        SUPPORTED_COMPRESSION_FORMATS.add("xz")
+    except ImportError:
+        COMPRESSION_FORMAT = None
+        
+    
+################################################
+#  Persistent I/O Functions for DataFrames
+################################################
 
 @copy_callable_signature(_pd.read_csv)
 def read_csv(fp, /, **kwargs) -> _pd.DataFrame:
@@ -165,5 +207,123 @@ def write_txt(df: _pd.DataFrame, fp: os.PathLike[str] | None = None, /, **kwargs
         raise TypeError(f"df must be of type {_pd.DataFrame.__name__!r}, not {type(df).__name__!r}.")
     kwargs.pop("path_or_buf", None)  # Remove if present to avoid conflicts
     return df.to_string(fp, **kwargs) 
+
+################################################
+#  Custom Save/Load Functions for DataFrames, Series, ndarrays
+################################################
+
+def save(obj: _pd.DataFrame | _pd.Series | _np.ndarray, name: str | None = None) -> None:
+    """Saves a pandas DataFrame, Series, or numpy ndarray to disk, optionally in a compressed format if available in the stdlib.
     
+    Args:
+        obj (pd.DataFrame | pd.Series | np.ndarray): The object to save.
+        name (str | None): The name to use for the saved file. If None, the variable name will be attempted to inferred.
+    Raises:
+        TypeError: If obj is not a pandas DataFrame, Series, or numpy ndarray.
+        ValueError: If name is None and the variable name cannot be inferred.
+    """
+    # Infer the variable name if not provided
+    if name is None:
+        lcl = inspect.stack()[2][0].f_locals
+        try:
+            name = next((k for k, v in lcl.items() if v is obj))
+        except StopIteration:
+            raise ValueError("Could not infer variable name; please provide a name argument.") from None
     
+    # Create the .RyData directory in the current working directory if it doesn't exist
+    cwd = pathlib.Path.cwd()
+    ry_data = cwd / ".RyData"
+    ry_data.mkdir(exist_ok=True)
+    
+    # Serialize the object to a BytesIO buffer
+    with io.BytesIO() as buf:
+        dtype: _SUPPORTED_DTYPES
+        # Determine the type of the object and serialize accordingly
+        if isinstance(obj, (_pd.Series)):
+            obj.to_csv(buf, index=False)
+            dtype = "pd_series"
+        elif isinstance(obj, (_pd.DataFrame)):
+            obj.to_csv(buf, index=False)
+            dtype = "pd_dataframe"
+        elif isinstance(obj, _np.ndarray):
+            # Disallow pickling for security reasons and to ensure compatibility across different numpy or Python versions
+            _np.save(buf, obj, allow_pickle=False)
+            dtype = "np_ndarray"
+        else:
+            raise TypeError("obj must be a pandas DataFrame, Series, or numpy ndarray.")
+        
+        # Write the buffer to disk with the appropriate compression format
+        buf.seek(0)
+        with open(ry_data.joinpath(f"{name}"), "wb") as output_file:
+            output_file.write(dtype.encode("utf-8") + b"\n")
+            match COMPRESSION_FORMAT:
+                case "zstd":
+                    output_file.write(b"zstd\n")
+                    with zstd.open(output_file, "wb") as f:
+                        f.write(buf.getvalue())
+                case "xz":
+                    output_file.write(b"xz\n")
+                    with lzma.open(output_file, "wb") as f:
+                        f.write(buf.getvalue())
+                case None:
+                    output_file.write(b"uncompressed\n")
+                    output_file.write(buf.getvalue())
+                case _:
+                    typing.assert_never(COMPRESSION_FORMAT)
+
+def load(name: str) -> _pd.DataFrame | _pd.Series | _np.ndarray:
+    """Loads a pandas DataFrame, Series, or numpy ndarray from disk, optionally in a compressed format if available in the stdlib.
+    
+    Args:
+        name (str): The name of the file to load (without extension).
+    Returns:
+        pd.DataFrame | pd.Series | np.ndarray: The loaded object.
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        ValueError: If the file is not a supported data type or compression format.
+    """
+    # Try to load the file from the .RyData directory in the current working directory
+    cwd = pathlib.Path.cwd()
+    ry_data = cwd / ".RyData"
+    if not ry_data.exists():
+        raise FileNotFoundError(f"No data has been saved in the current working directory: {cwd!r}.")
+    file = ry_data / name
+    if not file.exists():
+        raise FileNotFoundError(f"No saved data found with the name: {name!r}.")
+    with open(file, "rb") as f:
+        # The first line is the data type (see SUPPORTED_DTYPES for currently supported types)
+        dtype = f.readline().strip().decode("utf-8")
+        if dtype not in SUPPORTED_DTYPES:
+            raise ValueError(f"Unsupported data type found in file: {dtype!r}.")
+        # The second line is the compression format (see SUPPORTED_COMPRESSION_FORMATS for currently supported formats)
+        compression = f.readline().strip().decode("utf-8")
+        if compression not in SUPPORTED_COMPRESSION_FORMATS:
+            raise ValueError(f"Unsupported compression format found in file: {compression!r}.")
+        # Read the rest of the file based on the compression format into a buffer (BytesIO)
+        match compression:
+            case "zstd":
+                with zstd.open(f, "rb") as comp_f:
+                    data = io.BytesIO(comp_f.read())
+            case "xz":
+                with lzma.open(f, "rb") as comp_f:
+                    data = io.BytesIO(comp_f.read())
+            case "uncompressed":
+                data = io.BytesIO(f.read())
+            case _:
+                typing.assert_never(compression)
+    
+    # Finally, unserialize the data based on the data type
+    data.seek(0)
+    match dtype:
+        case "pd_series":
+            # Read as 1-column DataFrame and convert to Series
+            return _pd.read_csv(data, index_col=0).squeeze("columns")  # pyright: ignore[reportReturnType]
+        case "pd_dataframe":
+            # Read as DataFrame
+            return _pd.read_csv(data)
+        case "np_ndarray":
+            # Read as ndarray
+            return _np.load(data)
+        case _:
+            typing.assert_never(dtype)
+
