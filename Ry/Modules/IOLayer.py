@@ -40,12 +40,12 @@ type _SUPPORTED_COMPRESSION_FORMATS = typing.Literal["zstd", "xz", "uncompressed
 type _SUPPORTED_DTYPES = typing.Literal["pd_series", "pd_dataframe", "np_ndarray"]
 SUPPORTED_DTYPES: frozenset[_SUPPORTED_DTYPES] = frozenset({"pd_series", "pd_dataframe", "np_ndarray"})
 COMPRESSION_FORMAT: typing.Literal["zstd", "xz"] | None = None
-SUPPORTED_COMPRESSION_FORMATS: set[_SUPPORTED_COMPRESSION_FORMATS] = {"uncompressed"}
+__SUPPORTED_COMPRESSION_FORMATS: set[_SUPPORTED_COMPRESSION_FORMATS] = {"uncompressed"}
 
 try:
     from compression import zstd  # pyright: ignore[reportMissingImports]  # Support for zstd compression on 3.14+
     COMPRESSION_FORMAT = "zstd"
-    SUPPORTED_COMPRESSION_FORMATS.add("zstd")
+    __SUPPORTED_COMPRESSION_FORMATS.add("zstd")
 except ImportError:
     # zstd compression support is optional; if the module is unavailable, fall back to other formats.
     pass
@@ -54,15 +54,18 @@ try:
     from compression import lzma  # pyright: ignore[reportMissingImports]  # Support for xz compression on 3.14+
     if COMPRESSION_FORMAT is None:
         COMPRESSION_FORMAT = "xz"
-    SUPPORTED_COMPRESSION_FORMATS.add("xz")
+    __SUPPORTED_COMPRESSION_FORMATS.add("xz")
 except ImportError:
     try:  # fallback for older Python versions
         import lzma
         if COMPRESSION_FORMAT is None:
             COMPRESSION_FORMAT = "xz"
-        SUPPORTED_COMPRESSION_FORMATS.add("xz")
+        __SUPPORTED_COMPRESSION_FORMATS.add("xz")
     except ImportError:
         COMPRESSION_FORMAT = None
+
+
+SUPPORTED_COMPRESSION_FORMATS = frozenset(__SUPPORTED_COMPRESSION_FORMATS)
 
 
 ################################################
@@ -382,7 +385,7 @@ def cat(obj: typing.Any) -> None:
     # Numpy ndarrays also have their own pretty-printing methods
     elif isinstance(obj, _np.ndarray):
         threshold = _np.get_printoptions()["threshold"]
-        _np.set_printoptions(threshold=None)
+        _np.set_printoptions(threshold=sys.maxsize)
         builtins.print(obj)
         _np.set_printoptions(threshold=threshold)
     else:
@@ -408,7 +411,7 @@ def print(obj: typing.Any) -> None:
     # Numpy ndarrays also have their own pretty-printing methods
     elif isinstance(obj, _np.ndarray):
         threshold = _np.get_printoptions()["threshold"]
-        _np.set_printoptions(threshold=1000)
+        _np.set_printoptions(threshold=sys.maxsize)
         builtins.print(obj)
         _np.set_printoptions(threshold=threshold)
     else:
@@ -421,7 +424,7 @@ __current_sink: io.TextIOWrapper | None = None
 def _close_current_sink() -> None:
     """Closes the current sink if it is open and not sys.stdout."""
     global __current_sink
-    if __current_sink is not None and not __current_sink.closed and __current_sink is not sys.__stdout__:
+    if __current_sink is not None and not __current_sink.closed:
         try:
             __current_sink.close()
         except Exception:
@@ -448,6 +451,7 @@ def sink(file: os.PathLike[str] | io.TextIOWrapper | None = None) -> None:
         # Do not manage its lifecycle; just close any file opened by sink().
         _close_current_sink()
         sys.stdout = file
+        __current_sink = file
     else:
         # Close any previously opened sink file before opening a new one.
         _close_current_sink()
