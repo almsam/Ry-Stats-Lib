@@ -13,6 +13,10 @@ __all__ = [ # export funtions for import *
 ]
 
 def subset(obj, condition): # filter rows based on boolean condition
+    
+    """
+    Receives an object and boolean condition, returns filtered rows/elements
+    """
 
     if isinstance(obj, pd.DataFrame):
         return obj[condition]
@@ -24,6 +28,10 @@ def subset(obj, condition): # filter rows based on boolean condition
         raise TypeError(f"Cannot subset type {type(obj)}")
 
 def unique(obj): # extract unique elements
+    
+    """
+    Receives an object, returns unique elements with duplicates removed; preserves order when possible
+    """
     
     if isinstance(obj, pd.DataFrame):
         return obj.drop_duplicates()
@@ -37,6 +45,10 @@ def unique(obj): # extract unique elements
         raise TypeError(f"Cannot get unique elements from type {type(obj)}")
 
 def select(obj, cols):
+    
+    """
+    Receives a DataFrame and column names/indices, returns selected columns
+    """
     
     if isinstance(obj, pd.DataFrame):
         if isinstance(cols, (list, tuple)):
