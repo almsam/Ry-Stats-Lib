@@ -401,6 +401,20 @@ def print(obj: typing.Any) -> None:
         import pprint
         pprint.pprint(obj, stream=sys.stdout)
 
+__current_sink: io.TextIOWrapper | None = None
+
+def _close_current_sink() -> None:
+    """Closes the current sink if it is open and not sys.stdout."""
+    global __current_sink
+    if __current_sink is not None and not __current_sink.closed and __current_sink is not sys.__stdout__:
+        try:
+            __current_sink.close()
+        except Exception:
+            # Ignore any exceptions during close
+            pass
+    __current_sink = None
+
+atexit.register(_close_current_sink)
 
 def sink(file: os.PathLike[str] | io.TextIOWrapper | None = None) -> None:
     """Redirects the standard output to a file or back to the console.
@@ -408,22 +422,23 @@ def sink(file: os.PathLike[str] | io.TextIOWrapper | None = None) -> None:
     Args:
         file (os.PathLike[str] | None): The path to the output file, or None (default) to redirect back to the console.
     """
+    global __current_sink
+    
     if file is None:
         # Restore standard output to console
+        _close_current_sink()
         sys.stdout = sys.__stdout__
     elif isinstance(file, io.TextIOWrapper):
-        # Redirect standard output to the provided file-like object
+        # Redirect standard output to the provided file-like object.
+        # Do not manage its lifecycle; just close any file opened by sink().
+        _close_current_sink()
         sys.stdout = file
     else:
+        # Close any previously opened sink file before opening a new one.
+        _close_current_sink()
         f = open(file, "w")
         sys.stdout = f
-        # Try to close the file on program exit
-        def close_file(): 
-            try:
-                f.close()
-            except Exception:
-                pass
-        atexit.register(close_file)
+        __current_sink = f
 
 #################################################
 # Load Builtin Datasets
