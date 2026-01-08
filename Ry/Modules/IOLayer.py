@@ -1,6 +1,7 @@
 """Python API Layer for Ry I/O Functions."""
 
 import atexit
+import builtins
 import inspect
 import importlib.resources
 import io
@@ -246,11 +247,11 @@ def save(obj: _pd.DataFrame | _pd.Series | _np.ndarray, name: str | None = None)
     with io.BytesIO() as buf:
         dtype: _SUPPORTED_DTYPES
         # Determine the type of the object and serialize accordingly
-        if isinstance(obj, (_pd.Series)):
-            obj.to_csv(buf, index=False)
+        if isinstance(obj, _pd.Series):
+            obj.to_csv(buf, index=True)
             dtype = "pd_series"
-        elif isinstance(obj, (_pd.DataFrame)):
-            obj.to_csv(buf, index=False)
+        elif isinstance(obj, _pd.DataFrame):
+            obj.to_csv(buf, index=True)
             dtype = "pd_dataframe"
         elif isinstance(obj, _np.ndarray):
             # Disallow pickling for security reasons and to ensure compatibility across different numpy or Python versions
@@ -327,7 +328,7 @@ def load(name: str) -> _pd.DataFrame | _pd.Series | _np.ndarray:
             return _pd.read_csv(data, index_col=0).squeeze("columns")  # pyright: ignore[reportReturnType]
         case "pd_dataframe":
             # Read as DataFrame
-            return _pd.read_csv(data)
+            return _pd.read_csv(data, index_col=0)
         case "np_ndarray":
             # Read as ndarray
             return _np.load(data)
@@ -345,21 +346,21 @@ def cat(obj: typing.Any) -> None:
         obj: The object to print.
     """
     if isinstance(obj, bytes):
-        print(obj.decode("utf-8"))
+        builtins.print(obj.decode("utf-8"))
     elif isinstance(obj, str):
-        print(obj)
+        builtins.print(obj)
     # Pandas DataFrames and Series have their own pretty-printing methods
     elif isinstance(obj, (_pd.DataFrame, _pd.Series)):
         _pd.set_option("display.max_columns", None)
         _pd.set_option("display.max_rows", None)
-        print(obj.to_string())
+        builtins.print(obj.to_string())
     # Numpy ndarrays also have their own pretty-printing methods
     elif isinstance(obj, _np.ndarray):
         _np.set_printoptions(threshold=None)
-        print(obj)
+        builtins.print(obj)
     else:
         # use the default string representation for other types
-        print(repr(obj))
+        builtins.print(repr(obj))
 
 
 def print(obj: typing.Any) -> None:
@@ -372,15 +373,15 @@ def print(obj: typing.Any) -> None:
     if isinstance(obj, (_pd.DataFrame, _pd.Series)):
         _pd.set_option("display.max_columns", 20)
         _pd.set_option("display.max_rows", 60)
-        print(obj.to_string())
+        builtins.print(obj.to_string())
     # Numpy ndarrays also have their own pretty-printing methods
     elif isinstance(obj, _np.ndarray):
         _np.set_printoptions(threshold=1000)
-        print(obj)
+        builtins.print(obj)
     else:
         # use pprint for other types
         import pprint
-        pprint.pprint(obj)
+        pprint.pprint(obj, stream=sys.stdout)
 
 
 def sink(file: os.PathLike[str] | io.TextIOWrapper | None = None) -> None:
