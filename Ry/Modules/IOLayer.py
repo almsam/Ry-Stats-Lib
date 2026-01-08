@@ -225,17 +225,20 @@ def save(obj: _pd.DataFrame | _pd.Series | _np.ndarray, name: str | None = None)
     
     Args:
         obj (pd.DataFrame | pd.Series | np.ndarray): The object to save.
-        name (str | None): The name to use for the saved file. If None, the variable name will be attempted to inferred.
+        name (str | None): The name to use for the saved file. If None, the variable name will be attempted to be inferred.
     Raises:
         TypeError: If obj is not a pandas DataFrame, Series, or numpy ndarray.
         ValueError: If name is None and the variable name cannot be inferred.
     """
     # Infer the variable name if not provided
     if name is None:
-        lcl = inspect.stack()[2][0].f_locals
-        try:
-            name = next((k for k, v in lcl.items() if v is obj))
-        except StopIteration:
+        for i in {1, 2}:
+            if name is not None:
+                break
+            lcl = inspect.stack()[i][0].f_locals
+            name = next((k for k, v in lcl.items() if v is obj), None)
+            
+        if name is None:
             raise ValueError("Could not infer variable name; please provide a name argument.") from None
     
     # Create the .RyData directory in the current working directory if it doesn't exist
