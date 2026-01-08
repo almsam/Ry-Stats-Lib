@@ -45,6 +45,7 @@ SUPPORTED_COMPRESSION_FORMATS: set[_SUPPORTED_COMPRESSION_FORMATS] = {"uncompres
 try:
     from compression import zstd  # pyright: ignore[reportMissingImports]  # Support for zstd compression on 3.14+
     COMPRESSION_FORMAT = "zstd"
+    SUPPORTED_COMPRESSION_FORMATS.add("zstd")
 except ImportError:
     # zstd compression support is optional; if the module is unavailable, fall back to other formats.
     pass
