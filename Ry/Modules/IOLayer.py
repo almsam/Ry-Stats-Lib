@@ -357,13 +357,19 @@ def cat(obj: typing.Any) -> None:
         builtins.print(obj)
     # Pandas DataFrames and Series have their own pretty-printing methods
     elif isinstance(obj, (_pd.DataFrame, _pd.Series)):
+        max_col = _pd.get_option("display.max_columns")
+        max_row = _pd.get_option("display.max_rows")
         _pd.set_option("display.max_columns", None)
         _pd.set_option("display.max_rows", None)
         builtins.print(obj.to_string())
+        _pd.set_option("display.max_columns", max_col)
+        _pd.set_option("display.max_rows", max_row)
     # Numpy ndarrays also have their own pretty-printing methods
     elif isinstance(obj, _np.ndarray):
+        threshold = _np.get_printoptions()["threshold"]
         _np.set_printoptions(threshold=None)
         builtins.print(obj)
+        _np.set_printoptions(threshold=threshold)
     else:
         # use the default string representation for other types
         builtins.print(repr(obj))
@@ -377,13 +383,19 @@ def print(obj: typing.Any) -> None:
     """
     # Pandas DataFrames and Series have their own pretty-printing methods
     if isinstance(obj, (_pd.DataFrame, _pd.Series)):
+        max_col = _pd.get_option("display.max_columns")
+        max_row = _pd.get_option("display.max_rows")
         _pd.set_option("display.max_columns", 20)
         _pd.set_option("display.max_rows", 60)
         builtins.print(obj.to_string())
+        _pd.set_option("display.max_columns", max_col)
+        _pd.set_option("display.max_rows", max_row)
     # Numpy ndarrays also have their own pretty-printing methods
     elif isinstance(obj, _np.ndarray):
+        threshold = _np.get_printoptions()["threshold"]
         _np.set_printoptions(threshold=1000)
         builtins.print(obj)
+        _np.set_printoptions(threshold=threshold)
     else:
         # use pprint for other types
         import pprint
