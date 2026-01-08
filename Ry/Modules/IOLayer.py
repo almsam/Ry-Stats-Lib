@@ -1,3 +1,5 @@
+"""Python API Layer for Ry I/O Functions."""
+
 import atexit
 import inspect
 import importlib.resources
