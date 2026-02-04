@@ -78,7 +78,7 @@ def cov(x,y):
     if len(x)!=len(y):
         raise ValueError("The length of two vectors have to be the same.")
     elif len(x)<2 or len(y)<2:
-        raise ValueError("The length fo vectors needs to be at least 2 to compute covariance")
+        raise ValueError("The length fo vectors needs to be at least 2 to compute covariance.")
     else:
         x_mean=mean(x)
         y_mean=mean(y)
@@ -91,7 +91,9 @@ def cor(x,y):
     if len(x)!=len(y):
         raise ValueError("The length of two vectors have to be the same.")
     elif len(x)<2 or len(y)<2:
-        raise ValueError("The length fo vectors needs to be at least 2 to compute covariance")
+        raise ValueError("The length fo vectors needs to be at least 2 to compute correlation.")
+    elif sd(x)==0 or sd(y)==0:
+        raise ValueError("Standard deviation cannot be zero.")
     else:
         return cov(x, y) / (sd(x) * sd(y))
 
@@ -128,7 +130,9 @@ def quantile(x,q:float | list[float] =0.5):
         for i in range(len(q)):
             if q[i]<0 or q[i]>1:
                 raise ValueError("Your quantiles value has to be between 0 to 1")
-        return np.quantile(x,q).toList()
+        return np.quantile(x,q).tolist()
+
+
 
     
 
